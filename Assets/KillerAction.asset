@@ -20,6 +20,73 @@ MonoBehaviour:
       name: AtPatrolPoint
     - id: 2
       name: PlayerClose
-  actions: []
-  goals: []
+    - id: 3
+      name: HeardSound
+    - id: 4
+      name: LowHealth
+    - id: 5
+      name: IsHidden
+    - id: 6
+      name: 'KilledPlayer '
+  actions:
+  - name: Patrol
+    isDefault: 1
+    state: {fileID: 6737743756357005325, guid: d292e1becb7454e52bad1bf963083d48, type: 3}
+    cost: 1
+    position: {x: 244, y: 65}
+    pre: []
+    post:
+    - id: 1
+      value: 1
+  - name: ChasePlayer
+    isDefault: 0
+    state: {fileID: 2980003343478151945, guid: b937e5b10e68c4ff9b1cc58a64a42dd3, type: 3}
+    cost: 2
+    position: {x: 446, y: 65}
+    pre:
+    - id: 0
+      value: 1
+    post:
+    - id: 2
+      value: 1
+  - name: AttackPlayer
+    isDefault: 0
+    state: {fileID: 8278320887861551554, guid: 95c27907dfe394c16ba21861053d4280, type: 3}
+    cost: 3
+    position: {x: 646, y: 65}
+    pre:
+    - id: 2
+      value: 1
+    post:
+    - id: 6
+      value: 1
+  - name: InvestigateSound
+    isDefault: 0
+    state: {fileID: 760625402109311175, guid: f5beaf4414db54eb3adac26eb3b18ef4, type: 3}
+    cost: 2
+    position: {x: 844, y: 66}
+    pre:
+    - id: 3
+      value: 1
+    post:
+    - id: 3
+      value: 0
+  - name: Hide
+    isDefault: 0
+    state: {fileID: 6560150238821366870, guid: a8178d14aa3324527abf3da3533c5f9e, type: 3}
+    cost: 1
+    position: {x: 243, y: 256}
+    pre:
+    - id: 4
+      value: 1
+    post:
+    - id: 5
+      value: 1
+  goals:
+  - name: KillPlayer
+    isDefault: 1
+    position: {x: 449, y: 263}
+    conditions:
+    - id: 6
+      value: 1
   worldStates: []

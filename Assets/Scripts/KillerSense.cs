@@ -4,42 +4,69 @@ using Anthill.AI;
 public class KillerSense : MonoBehaviour, ISense
 {
     [Header("References")]
-    public Transform player;              // Drag your Player here, or it will auto-find by tag "Player"
+    public Transform player;
 
     [Header("Vision Settings")]
-    public float visionRange = 12f;       // How far the killer can see
-    public float visionAngle = 120f;      // Field of view in degrees
+    public float visionRange = 12f;
+    public float visionAngle = 120f;
 
     [Header("Hearing Settings")]
-    public float hearingRange = 15f;      // How far the killer can "hear" the player
+    public float hearingRange = 15f;
 
     [Header("Attack Settings")]
-    public float attackRange = 2.5f;      // How close to be considered "PlayerClose"
+    public float attackRange = 2.5f;
 
     [Header("Health Settings")]
     public float health = 100f;
     public float lowHealthThreshold = 30f;
 
+    [Header("Alert Settings")]
+    public float alertMemoryTime = 5f; // how long an alert is remembered
+
     private Transform _t;
+    private KillerMovement move;
+
+    // external alert (from another killer)
+    private bool heardExternalAlert;
+    private Vector3 lastAlertPos;
+    private float alertTimer;
 
     private void Awake()
     {
         _t = transform;
+        move = GetComponent<KillerMovement>();
 
-        // Try to auto-find the player if not assigned
         if (player == null)
         {
             GameObject go = GameObject.FindGameObjectWithTag("Player");
-            if (go != null)
+            if (go != null) player = go.transform;
+        }
+    }
+
+    private void Update()
+    {
+        // decay alert over time
+        if (heardExternalAlert)
+        {
+            alertTimer -= Time.deltaTime;
+            if (alertTimer <= 0f)
             {
-                player = go.transform;
+                heardExternalAlert = false;
             }
         }
     }
 
-    /// <summary>
-    /// Called automatically by AntAIAgent when it wants to update world state.
-    /// </summary>
+    // Called by KillerFeedback.BroadcastAlert
+    public void ReceiveAlert(Vector3 pos)
+    {
+        heardExternalAlert = true;
+        lastAlertPos = pos;
+        alertTimer = alertMemoryTime;
+
+        if (move != null)
+            move.soundPos = pos;
+    }
+
     public void CollectConditions(AntAIAgent aAgent, AntAICondition aWorldState)
     {
         if (aAgent == null) return;
@@ -49,13 +76,14 @@ public class KillerSense : MonoBehaviour, ISense
         bool canHearPlayer   = CanHearPlayer();
         bool isLowHealth     = (health <= lowHealthThreshold);
 
-        // IMPORTANT: wrap Set() calls with BeginUpdate / EndUpdate
+        // HeardSound is true if we can hear OR heard an alert
+        bool heardSound = canHearPlayer || heardExternalAlert;
+
         aWorldState.BeginUpdate(aAgent.planner);
         {
-            // These strings MUST match your Scenario condition names exactly
             aWorldState.Set("PlayerVisible", isPlayerVisible);
             aWorldState.Set("PlayerClose",   isPlayerClose);
-            aWorldState.Set("HeardSound",    canHearPlayer);
+            aWorldState.Set("HeardSound",    heardSound);
             aWorldState.Set("LowHealth",     isLowHealth);
         }
         aWorldState.EndUpdate();
@@ -72,7 +100,7 @@ public class KillerSense : MonoBehaviour, ISense
         float angle = Vector3.Angle(_t.forward, toPlayer.normalized);
         if (angle > visionAngle * 0.5f) return false;
 
-        // Simple version: no raycast, just distance + angle
+        // You can add a Physics.Raycast here if you want obstacles
         return true;
     }
 
@@ -90,10 +118,27 @@ public class KillerSense : MonoBehaviour, ISense
         return distance <= hearingRange;
     }
 
-    // Optional helper if you want to damage the killer from other scripts
     public void TakeDamage(float amount)
     {
         health -= amount;
         if (health < 0f) health = 0f;
+    }
+
+    // Debug gizmos
+    private void OnDrawGizmosSelected()
+    {
+        if (_t == null) _t = transform;
+
+        // Vision range
+        Gizmos.color = new Color(0f, 0f, 1f, 0.25f);
+        Gizmos.DrawWireSphere(_t.position, visionRange);
+
+        // Hearing range
+        Gizmos.color = new Color(1f, 1f, 0f, 0.25f);
+        Gizmos.DrawWireSphere(_t.position, hearingRange);
+
+        // Forward direction
+        Gizmos.color = Color.blue;
+        Gizmos.DrawLine(_t.position, _t.position + _t.forward * visionRange);
     }
 }

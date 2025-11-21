@@ -3,15 +3,16 @@ using Anthill.AI;
 
 public class KillerHideState : AntAIState
 {
-    private GameObject owner;
+    private KillerMovement move;
 
-    public override void Create(GameObject aGameObject)
+    public override void Create(GameObject owner)
     {
-        owner = aGameObject;
+        move = owner.GetComponent<KillerMovement>();
     }
 
-    public override void Execute(float aDeltaTime, float aTimeScale)
+    public override void Execute(float delta, float timeScale)
     {
+        move.Hide();
         Finish();
     }
 }

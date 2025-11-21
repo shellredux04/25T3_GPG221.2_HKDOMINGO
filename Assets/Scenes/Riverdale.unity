@@ -868,10 +868,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2168891beb0c2413aad8d88f33f5df78, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerVisible: 1
-  playerClose: 1
-  heardSound: 1
-  lowHealth: 1
+  player: {fileID: 1983537541}
+  visionRange: 12
+  visionAngle: 120
+  hearingRange: 15
+  attackRange: 2.5
+  health: 100
+  lowHealthThreshold: 30
 --- !u!212 &658779797
 SpriteRenderer:
   m_ObjectHideFlags: 0
@@ -3470,11 +3473,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 1983537535}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8668f881db2564f08aa9166a5ce0f9e4, type: 3}
+  m_Script: {fileID: 11500000, guid: a79a9cfd0c4644b78a8966d16b718f9d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  moveSpeed: 5
-  controller: {fileID: 0}
+  moveSpeed: 6
+  gravity: -9.81
+  jumpHeight: 1.5
+  cameraTransform: {fileID: 1470956107}
+  mouseSensitivity: 100
 --- !u!143 &1983537537
 CharacterController:
   m_ObjectHideFlags: 0

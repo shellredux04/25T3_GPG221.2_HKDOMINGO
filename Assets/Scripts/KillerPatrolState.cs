@@ -3,25 +3,17 @@ using Anthill.AI;
 
 public class KillerPatrolState : AntAIState
 {
-    private GameObject owner;
+    private KillerMovement move;
 
-    public override void Create(GameObject aGameObject)
+    public override void Create(GameObject owner)
     {
-        owner = aGameObject; 
+        move = owner.GetComponent<KillerMovement>();
     }
 
-    public override void Enter()
+    public override void Execute(float delta, float timeScale)
     {
-        Debug.Log("Killer: Enter Patrol");
-    }
-
-    public override void Execute(float aDeltaTime, float aTimeScale)
-    {
-        Finish();
-    }
-
-    public override void Exit()
-    {
-        Debug.Log("Killer: Exit Patrol");
+        move.Patrol();
+        // Patrol NEVER "finishes" unless you want a timed patrol
+        // So we do NOT call Finish() here
     }
 }

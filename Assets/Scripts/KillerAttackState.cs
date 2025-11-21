@@ -5,10 +5,10 @@ public class KillerAttackState : AntAIState
 {
     public override void Enter()
     {
-        Debug.Log("Killer attacks!");
+        Debug.Log("KILLER ATTACKS PLAYER!");
     }
 
-    public override void Execute(float aDeltaTime, float aTimeScale)
+    public override void Execute(float delta, float timeScale)
     {
         Finish();
     }

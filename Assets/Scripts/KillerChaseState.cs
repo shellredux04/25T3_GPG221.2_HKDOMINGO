@@ -3,33 +3,16 @@ using Anthill.AI;
 
 public class KillerChaseState : AntAIState
 {
-    private GameObject owner;
-    private Transform target;
+    private KillerMovement move;
 
-    public override void Create(GameObject aGameObject)
+    public override void Create(GameObject owner)
     {
-        owner = aGameObject;
+        move = owner.GetComponent<KillerMovement>();
     }
 
-    public override void Enter()
+    public override void Execute(float delta, float timeScale)
     {
-        target = GameObject.FindWithTag("Player")?.transform;
-    }
-
-    public override void Execute(float aDeltaTime, float aTimeScale)
-    {
-        if (target == null)
-        {
-            Finish();
-            return;
-        }
-
-        owner.transform.position = Vector3.MoveTowards(
-            owner.transform.position,
-            target.position,
-            3f * aDeltaTime
-        );
-
-        Finish();
+        move.ChasePlayer();
+        Finish(); // We want it to move ONE step per update
     }
 }

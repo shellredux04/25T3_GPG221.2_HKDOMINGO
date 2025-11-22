@@ -5,7 +5,6 @@ public class KillerChaseState : AntAIState
 {
     private KillerMovement move;
     private KillerFeedback feedback;
-    private bool alertSent;
 
     public override void Create(GameObject owner)
     {
@@ -15,26 +14,19 @@ public class KillerChaseState : AntAIState
 
     public override void Enter()
     {
-        alertSent = false;
-        if (feedback != null)
-            feedback.OnChaseEnter();
+        feedback?.ShowChase();
+        Debug.Log("Killer: Enter Chase");
     }
 
     public override void Execute(float delta, float timeScale)
     {
-        if (move != null)
-        {
-            move.ChasePlayer();
-
-            // Broadcast a creepy alert once when we start chasing
-            if (!alertSent && move.player != null && feedback != null)
-            {
-                feedback.BroadcastAlert(move.player.position);
-                alertSent = true;
-            }
-        }
-
-        // Single step state – allow planner to re-evaluate conditions
+        move?.ChasePlayer();
+        if (Vector3.Distance(transform.position, move.player.position) < 2.5f)
         Finish();
+    }
+
+    public override void Exit()
+    {
+        Debug.Log("Killer: Exit Chase");
     }
 }

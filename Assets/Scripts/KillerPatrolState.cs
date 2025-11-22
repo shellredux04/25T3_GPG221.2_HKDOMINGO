@@ -14,14 +14,18 @@ public class KillerPatrolState : AntAIState
 
     public override void Enter()
     {
-        if (feedback != null)
-            feedback.OnPatrolEnter();
+        feedback?.ShowPatrol();
+        Debug.Log("Killer: Enter Patrol");
     }
 
     public override void Execute(float delta, float timeScale)
     {
-        if (move != null)
-            move.Patrol();
-        // Do NOT Finish – patrol is continuous idle state
+        move?.Patrol();
+        // Patrol is the default idle; DON'T call Finish()
+    }
+
+    public override void Exit()
+    {
+        Debug.Log("Killer: Exit Patrol");
     }
 }

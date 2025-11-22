@@ -3,142 +3,76 @@ using Anthill.AI;
 
 public class KillerSense : MonoBehaviour, ISense
 {
-    [Header("References")]
     public Transform player;
 
-    [Header("Vision Settings")]
-    public float visionRange = 12f;
-    public float visionAngle = 120f;
+    [Header("Vision")]
+    public float visionRange = 16f;
+    public float fov = 160f;
 
-    [Header("Hearing Settings")]
-    public float hearingRange = 15f;
+    [Header("Hearing")]
+    public float hearingRange = 20f;
 
-    [Header("Attack Settings")]
-    public float attackRange = 2.5f;
+    [Header("Attack")]
+    public float attackDistance = 3f;
 
-    [Header("Health Settings")]
-    public float health = 100f;
-    public float lowHealthThreshold = 30f;
+    [Header("Health")]
+    public float health = 100;
+    public float lowHealthThreshold = 40;
 
-    [Header("Alert Settings")]
-    public float alertMemoryTime = 5f; // how long an alert is remembered
-
-    private Transform _t;
-    private KillerMovement move;
-
-    // external alert (from another killer)
-    private bool heardExternalAlert;
-    private Vector3 lastAlertPos;
-    private float alertTimer;
+    private Transform t;
 
     private void Awake()
     {
-        _t = transform;
-        move = GetComponent<KillerMovement>();
+        t = transform;
 
         if (player == null)
-        {
-            GameObject go = GameObject.FindGameObjectWithTag("Player");
-            if (go != null) player = go.transform;
-        }
+            player = GameObject.FindWithTag("Player").transform;
     }
 
-    private void Update()
+    public void CollectConditions(AntAIAgent agent, AntAICondition world)
     {
-        // decay alert over time
-        if (heardExternalAlert)
-        {
-            alertTimer -= Time.deltaTime;
-            if (alertTimer <= 0f)
-            {
-                heardExternalAlert = false;
-            }
-        }
+        bool visible = PlayerInSight();
+        bool close = PlayerClose();
+        bool heard = CanHear();
+        bool lowHP = (health <= lowHealthThreshold);
+
+        world.BeginUpdate(agent.planner);
+        world.Set("PlayerVisible", visible);
+        world.Set("PlayerClose", close);
+        world.Set("HeardSound", heard);
+        world.Set("LowHealth", lowHP);
+        world.EndUpdate();
     }
 
-    // Called by KillerFeedback.BroadcastAlert
-    public void ReceiveAlert(Vector3 pos)
+    private bool PlayerInSight()
     {
-        heardExternalAlert = true;
-        lastAlertPos = pos;
-        alertTimer = alertMemoryTime;
+        Vector3 toPlayer = player.position - t.position;
+        float dist = toPlayer.magnitude;
 
-        if (move != null)
-            move.soundPos = pos;
-    }
+        if (dist > visionRange) return false;
 
-    public void CollectConditions(AntAIAgent aAgent, AntAICondition aWorldState)
-    {
-        if (aAgent == null) return;
+        float angle = Vector3.Angle(t.forward, toPlayer.normalized);
+        if (angle > fov * 0.5f) return false;
 
-        bool isPlayerVisible = CanSeePlayer();
-        bool isPlayerClose   = IsPlayerClose();
-        bool canHearPlayer   = CanHearPlayer();
-        bool isLowHealth     = (health <= lowHealthThreshold);
-
-        // HeardSound is true if we can hear OR heard an alert
-        bool heardSound = canHearPlayer || heardExternalAlert;
-
-        aWorldState.BeginUpdate(aAgent.planner);
-        {
-            aWorldState.Set("PlayerVisible", isPlayerVisible);
-            aWorldState.Set("PlayerClose",   isPlayerClose);
-            aWorldState.Set("HeardSound",    heardSound);
-            aWorldState.Set("LowHealth",     isLowHealth);
-        }
-        aWorldState.EndUpdate();
-    }
-
-    private bool CanSeePlayer()
-    {
-        if (player == null) return false;
-
-        Vector3 toPlayer = player.position - _t.position;
-        float distance = toPlayer.magnitude;
-        if (distance > visionRange) return false;
-
-        float angle = Vector3.Angle(_t.forward, toPlayer.normalized);
-        if (angle > visionAngle * 0.5f) return false;
-
-        // You can add a Physics.Raycast here if you want obstacles
         return true;
     }
 
-    private bool IsPlayerClose()
+    private bool PlayerClose()
     {
-        if (player == null) return false;
-        float distance = Vector3.Distance(_t.position, player.position);
-        return distance <= attackRange;
+        return Vector3.Distance(t.position, player.position) <= attackDistance;
     }
 
-    private bool CanHearPlayer()
+    private bool CanHear()
     {
-        if (player == null) return false;
-        float distance = Vector3.Distance(_t.position, player.position);
-        return distance <= hearingRange;
+        return Vector3.Distance(t.position, player.position) <= hearingRange;
     }
 
-    public void TakeDamage(float amount)
+    private void OnDrawGizmos()
     {
-        health -= amount;
-        if (health < 0f) health = 0f;
+         if (player == null) return;
+
+        Gizmos.color = PlayerInSight() ? Color.green : Color.red;
+        Gizmos.DrawLine(transform.position, player.position);
     }
 
-    // Debug gizmos
-    private void OnDrawGizmosSelected()
-    {
-        if (_t == null) _t = transform;
-
-        // Vision range
-        Gizmos.color = new Color(0f, 0f, 1f, 0.25f);
-        Gizmos.DrawWireSphere(_t.position, visionRange);
-
-        // Hearing range
-        Gizmos.color = new Color(1f, 1f, 0f, 0.25f);
-        Gizmos.DrawWireSphere(_t.position, hearingRange);
-
-        // Forward direction
-        Gizmos.color = Color.blue;
-        Gizmos.DrawLine(_t.position, _t.position + _t.forward * visionRange);
-    }
 }

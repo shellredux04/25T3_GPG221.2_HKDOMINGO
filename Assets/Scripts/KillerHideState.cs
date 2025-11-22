@@ -14,15 +14,18 @@ public class KillerHideState : AntAIState
 
     public override void Enter()
     {
-        if (feedback != null)
-            feedback.OnHideEnter();
+        feedback?.ShowHide();
+        Debug.Log("Killer: Enter Hide");
     }
 
     public override void Execute(float delta, float timeScale)
     {
-        if (move != null)
-            move.Hide();
-
+        move?.Hide();
         Finish();
+    }
+
+    public override void Exit()
+    {
+        Debug.Log("Killer: Exit Hide");
     }
 }

@@ -1,98 +1,62 @@
 using UnityEngine;
 using TMPro;
 
-/// <summary>
-/// Handles visible + audio feedback for the killer,
-/// and broadcasts creepy "alerts" to other killers instead of radio.
-/// </summary>
-[RequireComponent(typeof(AudioSource))]
 public class KillerFeedback : MonoBehaviour
 {
-    [Header("Visuals")]
-    public TMP_Text floatingText;      
-    public Renderer bodyRenderer;        
+    [Header("UI")]
+    public TMP_Text stateText;     // Drag a TextMeshPro UI object here
 
-    [Header("Colours per State")]
-    public Color patrolColor = Color.green;
-    public Color chaseColor = Color.red;
-    public Color attackColor = Color.magenta;
-    public Color investigateColor = Color.yellow;
-    public Color hideColor = Color.cyan;
+    [Header("Creepy Sounds")]
+    public AudioSource audioSource;
+    public AudioClip patrolSound;
+    public AudioClip chaseSound;
+    public AudioClip attackSound;
+    public AudioClip hideSound;
+    public AudioClip investigateSound;
 
-    [Header("Sounds per State")]
-    public AudioClip patrolClip;
-    public AudioClip chaseClip;
-    public AudioClip attackClip;
-    public AudioClip investigateClip;
-    public AudioClip hideClip;
+    [Header("Visual Flash")]
+    public Renderer bodyRenderer;      // Drag the NPC mesh here
+    public Color flashColor = Color.red;
+    private Color originalColor;
+    private float flashTime = 0.15f;
 
-    [Header("Alert Communication Sound")]
-    public AudioClip alertClip; // creepy scream / howl
-
-    private AudioSource audioSource;
-    private KillerSense sense;
-
-    void Awake()
+    private void Start()
     {
-        audioSource = GetComponent<AudioSource>();
-        sense = GetComponent<KillerSense>();
+        if (bodyRenderer != null)
+            originalColor = bodyRenderer.material.color;
     }
 
-    // Generic helper
-    private void ShowState(string label, Color color, AudioClip clip)
+    
+    private void Display(string message, AudioClip clip)
     {
-        if (floatingText != null)
-            floatingText.text = label;
-
-        if (bodyRenderer != null)
-        {
-            var mat = bodyRenderer.material;
-            mat.color = color;
-        }
+        if (stateText != null)
+            stateText.text = message;
 
         if (audioSource != null && clip != null)
             audioSource.PlayOneShot(clip);
+
+        if (bodyRenderer != null)
+            StartCoroutine(Flash());
     }
 
-    public void OnPatrolEnter()
+    private System.Collections.IEnumerator Flash()
     {
-        ShowState("PATROLLING", patrolColor, patrolClip);
+        bodyRenderer.material.color = flashColor;
+        yield return new WaitForSeconds(flashTime);
+        bodyRenderer.material.color = originalColor;
     }
 
-    public void OnChaseEnter()
-    {
-        ShowState("CHASING", chaseColor, chaseClip);
-    }
+    // -----------------------
+    // PUBLIC FEEDBACK EVENTS
+    // -----------------------
 
-    public void OnAttackEnter()
-    {
-        ShowState("ATTACK!", attackColor, attackClip);
-    }
+    public void ShowPatrol() => Display("PATROLLING", patrolSound);
 
-    public void OnInvestigateEnter()
-    {
-        ShowState("INVESTIGATE", investigateColor, investigateClip);
-    }
+    public void ShowChase() => Display("CHASING", chaseSound);
 
-    public void OnHideEnter()
-    {
-        ShowState("HIDING", hideColor, hideClip);
-    }
+    public void ShowAttack() => Display("ATTACKING", attackSound);
 
-    /// <summary>
-    /// Broadcast a creepy scream/howl so other killers react.
-    /// </summary>
-    public void BroadcastAlert(Vector3 alertPosition)
-    {
-        if (audioSource != null && alertClip != null)
-            audioSource.PlayOneShot(alertClip);
+    public void ShowHide() => Display("HIDING", hideSound);
 
-        // Inform all other KillerSense components
-        KillerSense[] all = FindObjectsOfType<KillerSense>();
-        foreach (var s in all)
-        {
-            if (s == sense) continue; // don't alert self
-            s.ReceiveAlert(alertPosition);
-        }
-    }
+    public void ShowInvestigate() => Display("INVESTIGATING NOISE", investigateSound);
 }

@@ -12,14 +12,18 @@ public class KillerAttackState : AntAIState
 
     public override void Enter()
     {
+        feedback?.ShowAttack();
         Debug.Log("KILLER ATTACKS PLAYER!");
-        if (feedback != null)
-            feedback.OnAttackEnter();
     }
 
     public override void Execute(float delta, float timeScale)
     {
-        // You could apply damage to player here
+        // You can apply damage to the player here.
         Finish();
+    }
+
+    public override void Exit()
+    {
+        Debug.Log("Killer: Exit Attack");
     }
 }

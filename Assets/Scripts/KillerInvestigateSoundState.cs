@@ -14,15 +14,17 @@ public class KillerInvestigateSoundState : AntAIState
 
     public override void Enter()
     {
-        if (feedback != null)
-            feedback.OnInvestigateEnter();
+        feedback?.ShowInvestigate();
+        Debug.Log("Killer: Enter Investigate");
     }
 
     public override void Execute(float delta, float timeScale)
     {
-        if (move != null)
-            move.Investigate();
+        move?.Investigate();
+    }
 
-        Finish();
+    public override void Exit()
+    {
+        Debug.Log("Killer: Exit Investigate");
     }
 }

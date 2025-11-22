@@ -1,7 +1,7 @@
 using UnityEngine;
 using Anthill.AI;
 
-public class KillerInvestigateSoundState : AntAIState
+public class KillerChaseState : AntAIState
 {
     private KillerMovement move;
     private KillerFeedback feedback;
@@ -14,17 +14,22 @@ public class KillerInvestigateSoundState : AntAIState
 
     public override void Enter()
     {
-        feedback?.ShowInvestigate();
-        Debug.Log("Killer: Enter Investigate");
+        feedback?.ShowChase();
+        Debug.Log("Killer: Enter Chase");
     }
 
     public override void Execute(float delta, float timeScale)
     {
-        move?.Investigate();
+        if (move != null)
+            move.ChasePlayer();
+
+        // Let the sensor update world state (PlayerClose) and let the planner
+        // pick either Chase again or Attack next tick.
+        Finish();
     }
 
     public override void Exit()
     {
-        Debug.Log("Killer: Exit Investigate");
+        Debug.Log("Killer: Exit Chase");
     }
 }

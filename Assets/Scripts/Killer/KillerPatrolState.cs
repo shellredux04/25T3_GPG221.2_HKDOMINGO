@@ -1,7 +1,7 @@
 using UnityEngine;
 using Anthill.AI;
 
-public class KillerChaseState : AntAIState
+public class KillerPatrolState : AntAIState
 {
     private KillerMovement move;
     private KillerFeedback feedback;
@@ -14,19 +14,22 @@ public class KillerChaseState : AntAIState
 
     public override void Enter()
     {
-        feedback?.ShowChase();
-        Debug.Log("Killer: Enter Chase");
+        feedback?.ShowPatrol();
+        Debug.Log("Killer: Enter Patrol");
     }
 
     public override void Execute(float delta, float timeScale)
     {
-        move?.ChasePlayer();
-        if (Vector3.Distance(transform.position, move.player.position) < 2.5f)
+        // Walk the patrol points
+        move?.Patrol();
+
+        // Allow planner to re-evaluate conditions EVERY tick
+        // This is the missing part that prevented state switching.
         Finish();
     }
 
     public override void Exit()
     {
-        Debug.Log("Killer: Exit Chase");
+        Debug.Log("Killer: Exit Patrol");
     }
 }

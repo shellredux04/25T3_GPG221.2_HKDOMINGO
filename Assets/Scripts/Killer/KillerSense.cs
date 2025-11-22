@@ -19,39 +19,43 @@ public class KillerSense : MonoBehaviour, ISense
     public float health = 100;
     public float lowHealthThreshold = 40;
 
-    private Transform t;
-
     private void Awake()
     {
-        t = transform;
-
         if (player == null)
-            player = GameObject.FindWithTag("Player").transform;
+        {
+            GameObject go = GameObject.FindWithTag("Player");
+            if (go != null)
+            {
+                player = go.transform;
+            }
+        }
     }
 
     public void CollectConditions(AntAIAgent agent, AntAICondition world)
     {
         bool visible = PlayerInSight();
-        bool close = PlayerClose();
-        bool heard = CanHear();
-        bool lowHP = (health <= lowHealthThreshold);
+        bool close   = PlayerClose();
+        bool heard   = CanHear();
+        bool lowHP   = (health <= lowHealthThreshold);
 
         world.BeginUpdate(agent.planner);
         world.Set("PlayerVisible", visible);
-        world.Set("PlayerClose", close);
-        world.Set("HeardSound", heard);
-        world.Set("LowHealth", lowHP);
+        world.Set("PlayerClose",   close);
+        world.Set("HeardSound",    heard);
+        world.Set("LowHealth",     lowHP);
         world.EndUpdate();
     }
 
     private bool PlayerInSight()
     {
-        Vector3 toPlayer = player.position - t.position;
+        if (player == null) return false;
+
+        Vector3 toPlayer = player.position - transform.position;
         float dist = toPlayer.magnitude;
 
         if (dist > visionRange) return false;
 
-        float angle = Vector3.Angle(t.forward, toPlayer.normalized);
+        float angle = Vector3.Angle(transform.forward, toPlayer.normalized);
         if (angle > fov * 0.5f) return false;
 
         return true;
@@ -59,20 +63,23 @@ public class KillerSense : MonoBehaviour, ISense
 
     private bool PlayerClose()
     {
-        return Vector3.Distance(t.position, player.position) <= attackDistance;
+        if (player == null) return false;
+
+        return Vector3.Distance(transform.position, player.position) <= attackDistance;
     }
 
     private bool CanHear()
     {
-        return Vector3.Distance(t.position, player.position) <= hearingRange;
+        if (player == null) return false;
+
+        return Vector3.Distance(transform.position, player.position) <= hearingRange;
     }
 
     private void OnDrawGizmos()
     {
-         if (player == null) return;
+        if (player == null) return;
 
         Gizmos.color = PlayerInSight() ? Color.green : Color.red;
         Gizmos.DrawLine(transform.position, player.position);
     }
-
 }

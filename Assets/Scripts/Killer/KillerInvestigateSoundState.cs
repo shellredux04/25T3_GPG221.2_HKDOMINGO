@@ -1,7 +1,7 @@
 using UnityEngine;
 using Anthill.AI;
 
-public class KillerPatrolState : AntAIState
+public class KillerInvestigateSoundState : AntAIState
 {
     private KillerMovement move;
     private KillerFeedback feedback;
@@ -14,18 +14,21 @@ public class KillerPatrolState : AntAIState
 
     public override void Enter()
     {
-        feedback?.ShowPatrol();
-        Debug.Log("Killer: Enter Patrol");
+        feedback?.ShowInvestigate();
+        Debug.Log("Killer: Enter Investigate");
     }
 
     public override void Execute(float delta, float timeScale)
     {
-        move?.Patrol();
-        // Patrol is the default idle; DON'T call Finish()
+        if (move != null)
+            move.Investigate();
+
+        // One step of investigate, then allow planner to re-evaluate.
+        Finish();
     }
 
     public override void Exit()
     {
-        Debug.Log("Killer: Exit Patrol");
+        Debug.Log("Killer: Exit Investigate");
     }
 }

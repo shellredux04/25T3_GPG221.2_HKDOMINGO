@@ -25,16 +25,14 @@ public class KillerSense : MonoBehaviour, ISense
         {
             GameObject go = GameObject.FindWithTag("Player");
             if (go != null)
-            {
                 player = go.transform;
-            }
         }
     }
 
     public void CollectConditions(AntAIAgent agent, AntAICondition world)
     {
         bool visible = PlayerInSight();
-        bool close   = PlayerClose();
+        bool close   = IsPlayerClose();
         bool heard   = CanHear();
         bool lowHP   = (health <= lowHealthThreshold);
 
@@ -46,13 +44,13 @@ public class KillerSense : MonoBehaviour, ISense
         world.EndUpdate();
     }
 
+
     private bool PlayerInSight()
     {
         if (player == null) return false;
 
         Vector3 toPlayer = player.position - transform.position;
         float dist = toPlayer.magnitude;
-
         if (dist > visionRange) return false;
 
         float angle = Vector3.Angle(transform.forward, toPlayer.normalized);
@@ -61,19 +59,18 @@ public class KillerSense : MonoBehaviour, ISense
         return true;
     }
 
-    private bool PlayerClose()
+    private bool IsPlayerClose()
     {
         if (player == null) return false;
-
         return Vector3.Distance(transform.position, player.position) <= attackDistance;
     }
 
     private bool CanHear()
     {
         if (player == null) return false;
-
         return Vector3.Distance(transform.position, player.position) <= hearingRange;
     }
+
 
     private void OnDrawGizmos()
     {
@@ -82,4 +79,11 @@ public class KillerSense : MonoBehaviour, ISense
         Gizmos.color = PlayerInSight() ? Color.green : Color.red;
         Gizmos.DrawLine(transform.position, player.position);
     }
+
+
+    // === PUBLIC PROPERTIES FOR STATES ===
+    public bool PlayerVisible  => PlayerInSight();
+    public bool PlayerClose    => IsPlayerClose();
+    public bool HeardSoundFlag => CanHear();
+    public bool LowHealthFlag  => health <= lowHealthThreshold;
 }
